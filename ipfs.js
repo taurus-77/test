@@ -1,14 +1,13 @@
-const express = require('express');
+require('dotenv').config()
 
+const express = require('express');
 const router = express.Router({ mergeParams: true });
-const pinataApiKey = "6bf3ceb8d697cf0f1b5f";
-const pinataSecretApiKey = "a5e0bb2c2baf4decdceda55e4ca42c6112d68ca3306eca3f9aafcfd57917ccd2";
 
 const fs = require("fs");
 const formidable = require('formidable');
 
 const pinataSDK = require('@pinata/sdk');
-const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
+const pinata = pinataSDK(process.env.pinataApiKey, process.env.pinataSecretApiKey);
 
 router.post('/', async (req, res) => {
     try {

@@ -144,8 +144,6 @@ export default function App() {
 
     console.log("Signed transaction with txID: %s", JSON.stringify(signedTxn));
 
-    // var traxUrl = "https://api.testnet.algoexplorer.io/v2/transactions";
-
     sendTransaction.post('', signedTxn.blob, {
       headers: {
         'Content-Type': 'application/x-binary',
@@ -153,28 +151,10 @@ export default function App() {
     }).then(response => response.json())
       .then(data => {
         console.log("DATAAAAAAAAAAAAAAA", JSON.stringify(data));
-
       })
       .catch((error) => {
         console.error('Error:', error);
       });
-
-
-    // fetch(traxUrl, {
-    //   method: 'POST', // or 'PUT'
-    //   headers: {
-    //     'Content-Type': 'application/x-binary',
-    //   },
-    //   body: signedTxn.blob,
-    // })
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     console.log("DATAAAAAAAAAAAAAAA", JSON.stringify(data));
-
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error:', error);
-    //   });
 
     setSendingTransaction(false);
     setTxHash(signedTxn.txID);

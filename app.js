@@ -2,7 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 
-const ipfsRouter = require('./routes/ipfs')
+const ipfsService = require('./ipfs')
 
 const app = express();
 app.use(express.json());
@@ -11,7 +11,7 @@ app.use(express.urlencoded({
 }));
 app.use(cors({ origin: '*', credentials: true }));
 
-app.use('/upload', ipfsRouter);
+app.use('/upload', ipfsService);
 
 app.use((err, req, res) => {
   if (res.headersSent) {
