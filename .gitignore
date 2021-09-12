@@ -19,6 +19,8 @@ log.txt
 npm-debug.log*
 
 mint-app/node_modules
+client-app/node_modules
+
 
 /.idea
 /.ionic

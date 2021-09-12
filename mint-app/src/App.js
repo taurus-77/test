@@ -29,6 +29,8 @@ export default function App() {
   const [unitName, setUnitName] = useState("");
   const [Image, setImage] = useState({});
   const [URL, setURL] = useState(null);
+  const [receiverAddress, setReceiverAddress] = useState("");
+  const [assetID, setAssetID] = useState(0);
 
   useEffect(() => {
     magic.user.isLoggedIn().then(async (magicIsLoggedIn) => {
@@ -72,14 +74,17 @@ export default function App() {
 
     var formData = new FormData();
 
-    formData.append("image", Image);
     formData.append("document", blob);
+    formData.append("image", Image);
 
     fileUpload.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     }).then(value => setURL(value.data.result.IpfsHash))
+      .catch((error) => {
+        console.log('Error:', error);
+      });
   }
 
   async function createASA() {
@@ -138,23 +143,70 @@ export default function App() {
 
   }
 
+
+  const transferASA = async () => {
+    let url = 'https://api.testnet.algoexplorer.io/v2/transactions/params';
+    let params = await (await fetch(url)).json();
+
+    console.log(params)
+
+    let firstRound = params["last-round"];
+    let lastRound = params["last-round"] + 1000;
+    let genesisID = params["genesis-id"];
+    let genesisHash = params["genesis-hash"];
+    params.fee = 1000;
+
+    let getParams = {
+      "flatFee": true,
+      "fee": params.fee,
+      "firstRound": firstRound,
+      "lastRound": lastRound,
+      "genesisID": genesisID,
+      "genesisHash": genesisHash,
+    };
+
+    let metadata = createHash('sha256').update(Buffer.from(JSON.stringify([assetName, unitName, url]))).digest();
+    metadata = new Uint8Array(metadata);
+
+    setSendingTransaction(true);
+
+    const txn = {
+      type: "axfer",
+      from: publicAddress,
+      to: receiverAddress,
+      amount: 100,
+      suggestedParams: getParams,
+      assetIndex: 25821889,
+    };
+
+    console.log("Asset Transfer Transaction", txn)
+    hanldeTransaction(txn);
+  }
+
+
   async function hanldeTransaction(txn) {
 
     let signedTxn = await magic.algorand.signTransaction(txn);
 
     console.log("Signed transaction with txID: %s", JSON.stringify(signedTxn));
 
-    sendTransaction.post('', signedTxn.blob, {
+
+    fetch("https://api.testnet.algoexplorer.io/v2/transactions", {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/x-binary',
-      }
-    }).then(response => response.json())
+      },
+      body: signedTxn.blob,
+    })
+      .then(response => response.json())
       .then(data => {
         console.log("DATAAAAAAAAAAAAAAA", JSON.stringify(data));
+
       })
       .catch((error) => {
         console.error('Error:', error);
       });
+
 
     setSendingTransaction(false);
     setTxHash(signedTxn.txID);
@@ -263,6 +315,32 @@ export default function App() {
           )}
         </div>
       )}
+
+      <div className="container">
+
+        <input
+          type="text"
+          name="amount"
+          className="full-width"
+          required="required"
+          placeholder="Asset ID"
+          onChange={(event) => {
+            setAssetID(parseInt(event.target.value));
+          }}
+        />
+        <input
+          type="text"
+          name="amount"
+          className="full-width"
+          required="required"
+          placeholder="Reciever Address"
+          onChange={(event) => {
+            setReceiverAddress(event.target.value);
+          }}
+        />
+        <button onClick={transferASA}>Send</button>
+
+      </div>
     </div>
   );
 }

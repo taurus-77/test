@@ -11,17 +11,22 @@ const pinata = pinataSDK(process.env.pinataApiKey, process.env.pinataSecretApiKe
 
 router.post('/', async (req, res) => {
     try {
-        console.log('uploading you NFT data on IPFS...')
-        console.log(req.body, req.query);
 
         var form = new formidable.IncomingForm();
-
         form.parse(req, function (err, fields, files) {
 
             var currentPath = files.image.path;
 
             var fileData = fs.createReadStream(currentPath);
 
+            fs.readFile(files.document.path, (error, data) => {
+                if(error) {
+                    throw error;
+                }
+                console.log("dataaaaaaaaaa",JSON.parse(data.toString()));
+            });
+
+            
             pinata.testAuthentication().then((result) => {
                 console.log(result);
 
@@ -30,7 +35,7 @@ router.post('/', async (req, res) => {
                         name: files.document.name,
                     },
                     pinataOptions: {
-                        cidVersion: 0,
+                        cidVersion: 0.1,
                         wrapWithDirectory: false
                     }
                 };
@@ -52,22 +57,21 @@ router.post('/', async (req, res) => {
                             result
                         })
 
-                    }).catch((err) => {
-                        console.log(err);
-                    });
+                    }).catch(next)
 
                 }).catch((err) => {
                     console.log(err);
+                    // throw err;
                 });
 
             }).catch((err) => {
                 console.log(err);
+                throw err;
             });
         });
     } catch (err) {
         console.log(err);
     }
-
 })
 
 module.exports = router;
